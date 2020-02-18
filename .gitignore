@@ -1,0 +1,12 @@
+# Default ignored files
+/.idea/workspace.xml
+
+.idea
+*.iml
+out*
+logs*
+target*
+*.patch
+result.txt
+*rebel.xml
+jar*
