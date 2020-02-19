@@ -1,27 +1,30 @@
 package com.dao;
 
 
+import static org.junit.Assert.assertEquals;
+
+
 import com.entity.Role;
 import com.entity.User;
 import com.property.JdbcProperties;
-import java.io.FileOutputStream;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import org.dbunit.Assertion;
-import org.dbunit.DBTestCase;
 import org.dbunit.IDatabaseTester;
 import org.dbunit.JdbcDatabaseTester;
-import org.dbunit.database.QueryDataSet;
+import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ITable;
-import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.operation.DatabaseOperation;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-public class JdbcUserDaoTest extends DBTestCase {
+public class JdbcUserDaoTest {
 
     private IDatabaseTester iDatabaseTester;
     private UserDao userDao;
@@ -29,6 +32,9 @@ public class JdbcUserDaoTest extends DBTestCase {
     private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
     User[] users = new User[4];
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     @Before
     public void setUp() throws Exception {
@@ -46,16 +52,7 @@ public class JdbcUserDaoTest extends DBTestCase {
             "login4", "password4", "true@gmail.com",
             format.parse("1998-01-01"), new Role(2L, "user"));
 
-        iDatabaseTester = new JdbcDatabaseTester(
-            properties.getDriver(), properties.getUrl(),
-            properties.getUser(), properties.getPassword());
-
-        queryCreateTableRole();
-        queryCreateTableUser();
-
-        IDataSet expectedDataSet = getDataSet();
-        iDatabaseTester.setDataSet(expectedDataSet);
-        iDatabaseTester.onSetup();
+        DatabaseOperation.CLEAN_INSERT.execute(getConnection(), getDataSet());
     }
 
     @After
@@ -64,80 +61,78 @@ public class JdbcUserDaoTest extends DBTestCase {
         iDatabaseTester.onTearDown();
     }
 
-    @Override
-    protected IDataSet getDataSet() throws Exception {
+    private IDatabaseConnection getConnection() throws Exception {
+        iDatabaseTester = new JdbcDatabaseTester(
+            properties.getDriver(), properties.getUrl(),
+            properties.getUser(), properties.getPassword());
+
+        queryCreateTableRole();
+        queryCreateTableUser();
+
+        IDataSet iDataSet = getDataSet();
+        iDatabaseTester.setDataSet(iDataSet);
+        iDatabaseTester.onSetup();
+
+        return iDatabaseTester.getConnection();
+    }
+
+    private IDataSet getDataSet() throws Exception {
         return new FlatXmlDataSetBuilder().build(getClass()
             .getClassLoader().getResourceAsStream("dataset_user.xml"));
     }
 
-    public void testCreateUserInTable() throws Exception {
-        try {
-            userDao.create(null);
-            fail("should be threw NullPointerException");
-        } catch (NullPointerException e) {
-        } catch (Exception e) {
-            fail("should be threw NullPointerException");
-        }
+    @Test
+    public void testCreateUserInTableException() {
+        exception.expect(NullPointerException.class);
+        userDao.create(null);
+        exception.expectMessage(
+            "should be threw NullPointerException");
+    }
 
+    @Test
+    public void testCreateUserInTable() {
         userDao.create(users[2]);
         User admin = userDao.findByLogin(users[2].getLogin());
         assertEquals(users[2].getLogin(), admin.getLogin());
     }
 
-    public void testUpdateUserInTable() throws Exception {
-        try {
-            userDao.update(null);
-            fail("should be threw NullPointerException if user null");
-        } catch (NullPointerException e) {
-        } catch (Exception e) {
-            fail("should be threw NullPointerException if user null");
-        }
+    @Test
+    public void testUpdateUserInTableException() {
+        exception.expect(NullPointerException.class);
+        userDao.update(null);
+        exception.expectMessage(
+            "should be threw NullPointerException if user null");
 
-        try {
-            userDao.update(users[3]);
-            fail("should be threw IllegalArgumentException if user "
-                + "doesn't exist");
-        } catch (IllegalArgumentException e) {
-        } catch (Exception e) {
-            fail("should be threw IllegalArgumentException if user "
-                + "doesn't exist");
-        }
+        exception.expect(IllegalArgumentException.class);
+        userDao.update(users[3]);
+        exception.expectMessage("should be threw "
+            + "IllegalArgumentException if user doesn't exist");
+    }
 
+    @Test
+    public void testUpdateUserInTable() {
         userDao.update(users[2]);
 
         User byName = userDao.findByLogin(users[2].getLogin());
         assertEquals(users[2].getLogin(), byName.getLogin());
     }
 
-    public void testRemoveUserException() throws Exception {
-        try {
-            userDao.remove(null);
-            fail("should be threw NullPointerException if user null");
-        } catch (NullPointerException e) {
-        } catch (Exception e) {
-            fail("should be threw NullPointerException if user null");
-        }
+    @Test
+    public void testRemoveUserException() {
+        exception.expect(NullPointerException.class);
+        userDao.remove(null);
+        exception.expectMessage("should be threw NullPointerException "
+            + "if user null");
 
-        try {
-            userDao.remove(users[3]);
-            fail("should be threw IllegalArgumentException if user "
-                + "doesn't exist");
-        } catch (IllegalArgumentException e) {
-        } catch (Exception e) {
-            fail("should be threw IllegalArgumentException if user "
-                + "doesn't exist");
-        }
+        exception.expect(IllegalArgumentException.class);
+        userDao.remove(users[3]);
+        exception.expectMessage("should be threw "
+            + "IllegalArgumentException if user doesn't exist");
     }
 
+    @Test
     public void testRemoveUser() throws Exception {
         userDao.remove(new User(2L));
-
-        QueryDataSet partialDataSet = new QueryDataSet(
-            iDatabaseTester.getConnection());
-        partialDataSet.addTable("user", "SELECT * FROM user");
-        FlatXmlDataSet.write(partialDataSet,
-            new FileOutputStream(
-                "src/test/resource/dataset_remove_user.xml"));
 
         IDataSet databaseDataSet = iDatabaseTester.getConnection()
             .createDataSet();
@@ -151,6 +146,7 @@ public class JdbcUserDaoTest extends DBTestCase {
         Assertion.assertEquals(expectedTable, actualTable);
     }
 
+    @Test
     public void testUsersFindAll() throws Exception {
         List<User> allUsers = userDao.findAll();
 
@@ -161,48 +157,40 @@ public class JdbcUserDaoTest extends DBTestCase {
         assertEquals(table.getRowCount(), allUsers.size());
     }
 
-    public void testFindByLoginUser() throws Exception {
-        try {
-            userDao.findByLogin(null);
-            fail("should be threw NullPointerException if login null");
-        } catch (NullPointerException e) {
-        } catch (Exception e) {
-            fail("should be threw NullPointerException if login null");
-        }
+    @Test
+    public void testFindByLoginUserException() {
+        exception.expect(NullPointerException.class);
+        userDao.findByLogin(null);
+        exception.expectMessage("should be threw NullPointerException "
+            + "if login null");
 
-        try {
-            userDao.findByLogin(users[3].getLogin());
-            fail("should be threw IllegalArgumentException if login"
-                + "doesn't exist");
-        } catch (IllegalArgumentException e) {
-        } catch (Exception e) {
-            fail("should be threw IllegalArgumentException if login"
-                + "doesn't exist");
-        }
+        exception.expect(IllegalArgumentException.class);
+        userDao.findByLogin(users[3].getLogin());
+        exception.expectMessage("should be threw "
+            + "IllegalArgumentException if login doesn't exist");
+    }
 
+    @Test
+    public void testFindByLoginUser() {
         User byLogin = userDao.findByLogin(users[0].getLogin());
         assertEquals(users[0].getLogin(), byLogin.getLogin());
     }
 
-    public void testFindByEmailUser() throws Exception {
-        try {
-            userDao.findByEmail(null);
-            fail("should be threw NullPointerException if email null");
-        } catch (NullPointerException e) {
-        } catch (Exception e) {
-            fail("should be threw NullPointerException if email null");
-        }
+    @Test
+    public void testFindByEmailUserException() {
+        exception.expect(NullPointerException.class);
+        userDao.findByEmail(null);
+        exception.expectMessage("should be threw NullPointerException "
+            + "if email null");
 
-        try {
-            userDao.findByEmail(users[3].getEmail());
-            fail("should be threw IllegalArgumentException if email"
-                + "doesn't exist");
-        } catch (IllegalArgumentException e) {
-        } catch (Exception e) {
-            fail("should be threw IllegalArgumentException if email"
-                + "doesn't exist");
-        }
+        exception.expect(IllegalArgumentException.class);
+        userDao.findByEmail(users[3].getEmail());
+        exception.expectMessage("should be threw "
+            + "IllegalArgumentException if email doesn't exist");
+    }
 
+    @Test
+    public void testFindByEmailUser() {
         User byEmail = userDao.findByEmail(users[0].getEmail());
         assertEquals(users[0].getEmail(), byEmail.getEmail());
     }

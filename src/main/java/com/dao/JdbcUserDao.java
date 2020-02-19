@@ -1,5 +1,8 @@
 package com.dao;
 
+import static com.dao.AbstractJdbcDao.createConnection;
+
+
 import com.entity.Role;
 import com.entity.User;
 import java.sql.Connection;
@@ -10,7 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JdbcUserDao extends AbstractJdbcDao implements UserDao {
+public class JdbcUserDao implements UserDao {
 
     @Override
     public void create(User user) {
@@ -45,8 +48,6 @@ public class JdbcUserDao extends AbstractJdbcDao implements UserDao {
                     throw new RuntimeException(eRollBack);
                 }
                 throw new RuntimeException(e);
-            } finally {
-                connection.setAutoCommit(true);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -91,8 +92,6 @@ public class JdbcUserDao extends AbstractJdbcDao implements UserDao {
                     throw new RuntimeException(eRollBack);
                 }
                 throw new RuntimeException(e);
-            } finally {
-                connection.setAutoCommit(true);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -124,8 +123,6 @@ public class JdbcUserDao extends AbstractJdbcDao implements UserDao {
                     throw new RuntimeException(eRollBack);
                 }
                 throw new RuntimeException(e);
-            } finally {
-                connection.setAutoCommit(true);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

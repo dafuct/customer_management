@@ -8,13 +8,15 @@ import org.apache.commons.dbcp2.BasicDataSource;
 
 public abstract class AbstractJdbcDao {
 
-    private BasicDataSource dataSource;
+    private static BasicDataSource dataSource;
 
-    Connection createConnection() throws SQLException {
-        return getDataSource().getConnection();
+    public static Connection createConnection() throws SQLException {
+        Connection connection = getDataSource().getConnection();
+        connection.setAutoCommit(true);
+        return connection;
     }
 
-    public DataSource getDataSource() {
+    private static synchronized DataSource getDataSource() {
         JdbcProperties properties = new JdbcProperties().invoke();
         if (dataSource == null) {
             dataSource = new BasicDataSource();

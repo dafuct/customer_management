@@ -1,12 +1,15 @@
 package com.dao;
 
+import static com.dao.AbstractJdbcDao.createConnection;
+
+
 import com.entity.Role;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class JdbcRoleDao extends AbstractJdbcDao implements RoleDao {
+public class JdbcRoleDao implements RoleDao {
 
     @Override
     public void create(Role role) {
@@ -29,9 +32,6 @@ public class JdbcRoleDao extends AbstractJdbcDao implements RoleDao {
                     throw new RuntimeException(eRollBack);
                 }
                 throw new RuntimeException(e);
-            } finally {
-                connection.setAutoCommit(true);
-
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -64,8 +64,6 @@ public class JdbcRoleDao extends AbstractJdbcDao implements RoleDao {
                     throw new RuntimeException(eRollBack);
                 }
                 throw new RuntimeException(e);
-            } finally {
-                connection.setAutoCommit(true);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -90,7 +88,6 @@ public class JdbcRoleDao extends AbstractJdbcDao implements RoleDao {
                 statement.executeUpdate();
 
                 connection.commit();
-                connection.setAutoCommit(true);
             } catch (SQLException e) {
                 try {
                     connection.rollback();
@@ -98,8 +95,6 @@ public class JdbcRoleDao extends AbstractJdbcDao implements RoleDao {
                     throw new RuntimeException(eRollBack);
                 }
                 throw new RuntimeException(e);
-            } finally {
-                connection.setAutoCommit(true);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

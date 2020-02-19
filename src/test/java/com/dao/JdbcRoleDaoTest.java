@@ -1,32 +1,46 @@
 package com.dao;
 
+import static org.junit.Assert.assertEquals;
+
+
 import com.entity.Role;
 import com.property.JdbcProperties;
-import java.io.FileOutputStream;
 import java.sql.Statement;
 import org.dbunit.Assertion;
-import org.dbunit.DBTestCase;
 import org.dbunit.IDatabaseTester;
 import org.dbunit.JdbcDatabaseTester;
-import org.dbunit.PropertiesBasedJdbcDatabaseTester;
-import org.dbunit.database.QueryDataSet;
+import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ITable;
-import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.operation.DatabaseOperation;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-public class JdbcRoleDaoTest extends DBTestCase {
+public class JdbcRoleDaoTest {
 
     private IDatabaseTester iDatabaseTester;
     private RoleDao roleDao;
     private JdbcProperties properties = new JdbcProperties().invoke();
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @Before
     public void setUp() throws Exception {
         roleDao = new JdbcRoleDao();
+        DatabaseOperation.CLEAN_INSERT.execute(getConnection(), getDataSet());
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        DatabaseOperation.DELETE_ALL.execute(getConnection(), getDataSet());
+    }
+
+    private IDatabaseConnection getConnection() throws Exception {
         iDatabaseTester = new JdbcDatabaseTester(
             properties.getDriver(), properties.getUrl(),
             properties.getUser(), properties.getPassword());
@@ -36,66 +50,47 @@ public class JdbcRoleDaoTest extends DBTestCase {
         IDataSet iDataSet = getDataSet();
         iDatabaseTester.setDataSet(iDataSet);
         iDatabaseTester.onSetup();
+
+        return iDatabaseTester.getConnection();
     }
 
-    @After
-    public void tearDown() throws Exception {
-        iDatabaseTester.setSetUpOperation(DatabaseOperation.DELETE_ALL);
-        iDatabaseTester.onTearDown();
-    }
-
-    @Override
-    protected IDataSet getDataSet() throws Exception {
+    private IDataSet getDataSet() throws Exception {
         return new FlatXmlDataSetBuilder().build(
             getClass().getClassLoader()
                 .getResourceAsStream("dataset_role.xml"));
     }
 
-    @Override
-    protected DatabaseOperation getTearDownOperation() throws Exception {
-        return DatabaseOperation.DELETE_ALL;
+    @Test
+    public void testCreateRoleInTableException() {
+        exception.expect(NullPointerException.class);
+        roleDao.create(null);
+        exception.expectMessage("should be threw NullPointerException");
     }
 
-    public void testFindByName() throws Exception {
-        Role adminRole = new Role("admin");
-        Role byName = roleDao.findByName(adminRole.getName());
-        assertEquals(adminRole.getName(), byName.getName());
-    }
-
-    public void testCreateRoleInTable() throws Exception {
-        try {
-            roleDao.create(null);
-            fail("should be threw NullPointerException");
-        } catch (NullPointerException e) {
-        } catch (Exception e) {
-            fail("should be threw NullPointerException");
-        }
-
+    @Test
+    public void testCreateRoleInTable() {
         Role sampleRole = new Role("sample");
         roleDao.create(sampleRole);
         Role admin = roleDao.findByName(sampleRole.getName());
         assertEquals(sampleRole.getName(), admin.getName());
     }
 
-    public void testUpdateRoleInTable() throws Exception {
-        try {
-            roleDao.update(null);
-            fail("should be threw NullPointerException if role null");
-        } catch (NullPointerException e) {
-        } catch (Exception e) {
-            fail("should be threw NullPointerException if role null");
-        }
+    @Test
+    public void testUpdateRoleInTableException() throws Exception {
+        exception.expect(NullPointerException.class);
+        roleDao.update(null);
+        exception.expectMessage("should be threw NullPointerException "
+            + "if role null");
 
-        try {
-            roleDao.update(new Role(4L, "gist"));
-            fail("should be threw IllegalArgumentException if role "
-                + "doesn't exist");
-        } catch (IllegalArgumentException e) {
-        } catch (Exception e) {
-            fail("should be threw IllegalArgumentException if role "
-                + "doesn't exist");
-        }
+        exception.expect(IllegalArgumentException.class);
+        roleDao.update(new Role(4L, "gist"));
+        exception.expectMessage(
+            "should be threw IllegalArgumentException "
+                + "if role doesn't exist");
+    }
 
+    @Test
+    public void testUpdateRoleInTable() {
         Role roleUserUpdate = new Role(1L, "gist");
         roleDao.update(roleUserUpdate);
 
@@ -103,35 +98,22 @@ public class JdbcRoleDaoTest extends DBTestCase {
         assertEquals(roleUserUpdate.getName(), byName.getName());
     }
 
-    public void testRemoveRoleException() throws Exception {
-        try {
-            roleDao.remove(null);
-            fail("should be threw NullPointerException if role null");
-        } catch (NullPointerException e) {
-        } catch (Exception e) {
-            fail("should be threw NullPointerException if role null");
-        }
+    @Test
+    public void testRemoveRoleException() {
+        exception.expect(NullPointerException.class);
+        roleDao.remove(null);
+        exception.expectMessage("should be threw NullPointerException "
+            + "if role null");
 
-        try {
-            roleDao.remove(new Role(4L));
-            fail("should be threw IllegalArgumentException if role "
-                + "doesn't exist");
-        } catch (IllegalArgumentException e) {
-        } catch (Exception e) {
-            fail("should be threw IllegalArgumentException if role "
-                + "doesn't exist");
-        }
+        exception.expect(NullPointerException.class);
+        roleDao.remove(new Role(4L));
+        exception.expectMessage("should be threw IllegalArgumentException "
+            + "if role doesn't exist");
     }
 
+    @Test
     public void testRemoveRole() throws Exception {
         roleDao.remove(new Role(1L));
-
-        QueryDataSet partialDataSet = new QueryDataSet(
-            iDatabaseTester.getConnection());
-        partialDataSet.addTable("role", "SELECT * FROM role");
-        FlatXmlDataSet.write(partialDataSet,
-            new FileOutputStream(
-                "src/test/resource/dataset_remove_role.xml"));
 
         IDataSet databaseDataSet = iDatabaseTester.getConnection()
             .createDataSet();
@@ -145,24 +127,24 @@ public class JdbcRoleDaoTest extends DBTestCase {
         Assertion.assertEquals(expectedTable, actualTable);
     }
 
-    public void testFindByNameException() {
-        try {
-            roleDao.findByName(null);
-            fail("should be threw NullPointerException if role null");
-        } catch (NullPointerException e) {
-        } catch (Exception e) {
-            fail("should be threw NullPointerException if role null");
-        }
+    @Test
+    public void testFindByName() {
+        Role adminRole = new Role("admin");
+        Role byName = roleDao.findByName(adminRole.getName());
+        assertEquals(adminRole.getName(), byName.getName());
+    }
 
-        try {
-            roleDao.findByName(new Role("test").getName());
-            fail("should be threw IllegalArgumentException if role "
-                + "doesn't exist");
-        } catch (IllegalArgumentException e) {
-        } catch (Exception e) {
-            fail("should be threw IllegalArgumentException if role "
-                + "doesn't exist");
-        }
+    @Test
+    public void testFindByNameException() {
+        exception.expect(NullPointerException.class);
+        roleDao.findByName(null);
+        exception.expectMessage("should be threw NullPointerException "
+            + "if role null");
+
+        exception.expect(IllegalArgumentException.class);
+        roleDao.findByName(new Role("test").getName());
+        exception.expectMessage("should be threw IllegalArgumentException "
+            + "if role doesn't exist");
     }
 
     private void queryCreateTableRole() {
@@ -175,5 +157,4 @@ public class JdbcRoleDaoTest extends DBTestCase {
             throw new RuntimeException(e);
         }
     }
-
 }
