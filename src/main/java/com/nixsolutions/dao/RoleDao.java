@@ -1,6 +1,7 @@
 package com.nixsolutions.dao;
 
 import com.nixsolutions.entity.Role;
+import java.util.List;
 
 public interface RoleDao {
     void create(Role role);
@@ -10,4 +11,6 @@ public interface RoleDao {
     void remove(Role role);
 
     Role findByName(String name);
+
+    List<Role> findAll();
 }

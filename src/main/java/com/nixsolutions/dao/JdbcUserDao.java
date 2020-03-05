@@ -10,264 +10,179 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class JdbcUserDao implements UserDao {
 
-    @Override
-    public void create(User user) {
-        if (user == null) {
-            throw new NullPointerException();
-        }
+  private static final String INSERT_SQL = "INSERT INTO client ("
+      + "first_name, last_name, login, password, email, birthday, role_id)"
+      + " VALUES (?, ?, ?, ?, ?, ?, ?);";
+  private static final String UPDATE_SQL = "UPDATE client SET first_name = ?, "
+      + "last_name = ?, login = ?, password = ?, email = ?,"
+      + "birthday = ?, role_id = ? WHERE login = ?;";
+  private static final String DELETE_SQL = "DELETE FROM client WHERE login = ?;";
+  private static final String FIND_ALL_SQL = "SELECT * FROM client INNER JOIN role ON client.role_id = role.id;";
+  private static final String FIND_BY_LOGIN_SQL = "SELECT * FROM client INNER JOIN role ON client.role_id = role.id WHERE login = ?;";
+  private static final String FIND_BY_EMAIL = "SELECT * FROM client INNER JOIN role ON client.role_id = role.id WHERE email = ?;";
 
-        String sql = "INSERT INTO user ("
-            + "first_name, last_name, login, password, email, birthday, role_id) "
-            + "values (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection connection = createConnection()) {
-            connection.setAutoCommit(false);
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                statement.setString(1, user.getFirstName());
-                statement.setString(2, user.getLastName());
-                statement.setString(3, user.getLogin());
-                statement.setString(4, user.getPassword());
-                statement.setString(5, user.getEmail());
+  public void create(User user) {
 
-                java.util.Date birthday = user.getBirthday();
-                Date dateSql = new Date(birthday.getTime());
-                statement.setDate(6, dateSql);
-
-                statement.setLong(7, user.getRole().getId());
-                statement.executeUpdate();
-
-                connection.commit();
-            } catch (SQLException e) {
-                try {
-                    connection.rollback();
-                } catch (SQLException eRollBack) {
-                    throw new RuntimeException(eRollBack);
-                }
-                throw new RuntimeException(e);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    if (user == null) {
+      throw new NullPointerException();
     }
 
-    @Override
-    public void update(User user) {
-        if (user == null) {
-            throw new NullPointerException();
+    try (Connection connection = createConnection()) {
+      connection.setAutoCommit(false);
+      try (PreparedStatement statement = connection.prepareStatement(INSERT_SQL)) {
+        statement.setString(1, user.getFirstName());
+        statement.setString(2, user.getLastName());
+        statement.setString(3, user.getLogin());
+        statement.setString(4, user.getPassword());
+        statement.setString(5, user.getEmail());
+        statement.setDate(6, Date.valueOf(user.getBirthday()));
+        statement.setLong(7, user.getRole().getId());
+        statement.executeUpdate();
+
+        connection.commit();
+      } catch (SQLException e) {
+        try {
+          connection.rollback();
+        } catch (SQLException eRollBack) {
+          throw new RuntimeException(eRollBack);
         }
+        throw new RuntimeException(e);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-        if (!existUserById(user.getId())) {
-            throw new IllegalArgumentException();
-        }
+  public void update(User user) {
 
-        String sql = "UPDATE user SET first_name = ?, last_name = ?, login = ?, "
-            + "password = ?, email = ?, birthday = ?, role_id = ? "
-            + "WHERE id = ?";
-        try (Connection connection = createConnection()) {
-            connection.setAutoCommit(false);
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                statement.setString(1, user.getFirstName());
-                statement.setString(2, user.getLastName());
-                statement.setString(3, user.getLogin());
-                statement.setString(4, user.getPassword());
-                statement.setString(5, user.getEmail());
-
-                java.util.Date birthday = user.getBirthday();
-                Date dateSql = new Date(birthday.getTime());
-                statement.setDate(6, dateSql);
-
-                statement.setLong(7, user.getRole().getId());
-                statement.setLong(8, user.getId());
-                statement.executeUpdate();
-
-                connection.commit();
-            } catch (SQLException e) {
-                try {
-                    connection.rollback();
-                } catch (SQLException eRollBack) {
-                    throw new RuntimeException(eRollBack);
-                }
-                throw new RuntimeException(e);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    if (user == null) {
+      throw new NullPointerException();
     }
 
-    @Override
-    public void remove(User user) {
-        if (user == null) {
-            throw new NullPointerException();
-        }
+    try (Connection connection = createConnection()) {
+      connection.setAutoCommit(false);
+      try (PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
+        statement.setString(1, user.getFirstName());
+        statement.setString(2, user.getLastName());
+        statement.setString(3, user.getLogin());
+        statement.setString(4, user.getPassword());
+        statement.setString(5, user.getEmail());
+        statement.setDate(6, Date.valueOf(user.getBirthday()));
+        statement.setLong(7, user.getRole().getId());
+        statement.setString(8, user.getLogin());
+        statement.execute();
 
-        if (!existUserById(user.getId())) {
-            throw new IllegalArgumentException();
+        connection.commit();
+      } catch (SQLException e) {
+        try {
+          connection.rollback();
+        } catch (SQLException eRollBack) {
+          throw new RuntimeException(eRollBack);
         }
+        throw new RuntimeException(e);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-        String sql = "DELETE FROM user WHERE id = ?";
-        try (Connection connection = createConnection()) {
-            connection.setAutoCommit(false);
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                statement.setLong(1, user.getId());
-                statement.executeUpdate();
+  public void remove(User user) {
+    try (Connection connection = createConnection()) {
+      connection.setAutoCommit(false);
+      try (PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
+        statement.setString(1, user.getLogin());
+        statement.execute();
 
-                connection.commit();
-            } catch (SQLException e) {
-                try {
-                    connection.rollback();
-                } catch (SQLException eRollBack) {
-                    throw new RuntimeException(eRollBack);
-                }
-                throw new RuntimeException(e);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        connection.commit();
+      } catch (SQLException e) {
+        try {
+          connection.rollback();
+        } catch (SQLException eRollBack) {
+          throw new RuntimeException(eRollBack);
         }
+        throw new RuntimeException(e);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public List<User> findAll() {
+    List<User> list = new ArrayList<>();
+
+    try (Connection connection = createConnection();
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(FIND_ALL_SQL)) {
+      while (resultSet.next()) {
+        RoleDao roleDao = new JdbcRoleDao();
+        Role role = roleDao.findByName(resultSet.getString("name"));
+        User user = new User(
+            resultSet.getLong("id"),
+            resultSet.getString("first_name"),
+            resultSet.getString("last_name"),
+            resultSet.getString("login"),
+            resultSet.getString("password"),
+            resultSet.getString("email"),
+            resultSet.getDate("birthday").toLocalDate(),
+            role);
+        list.add(user);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
 
-    @Override
-    public List<User> findAll() {
-        List<User> userList = new ArrayList<>();
-        String sql = "SELECT * FROM user";
-        try (Connection connection = createConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                userList.add(new User(
-                    resultSet.getLong("id"),
-                    resultSet.getString("first_name"),
-                    resultSet.getString("last_name"),
-                    resultSet.getString("login"),
-                    resultSet.getString("password"),
-                    resultSet.getString("email"),
-                    resultSet.getDate("birthday"),
-                    new Role(resultSet.getLong("role_id"))
-                ));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return userList;
+    return list;
+  }
+
+  public User findByLogin(String login) {
+
+    if (login == null) {
+      throw new NullPointerException();
     }
 
-    @Override
-    public User findByLogin(String login) {
-        if (login == null) {
-            throw new NullPointerException();
-        }
+    User user = null;
 
-        if (!existUserByLogin(login)) {
-            throw new IllegalArgumentException();
-        }
+    return getUser(login, user, FIND_BY_LOGIN_SQL);
+  }
 
-        User user = new User();
-        String sql = "SELECT * FROM user WHERE login = ?";
-        try (Connection connection = createConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, login);
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                user.setId(resultSet.getLong("id"));
-                user.setFirstName(resultSet.getString("first_name"));
-                user.setLastName(resultSet.getString("last_name"));
-                user.setLogin(resultSet.getString("login"));
-                user.setPassword(resultSet.getString("password"));
-                user.setEmail(resultSet.getString("email"));
+  public User findByEmail(String email) {
 
-                Date birthday = resultSet.getDate("birthday");
-                java.util.Date utilBirthday = new Date(birthday.getTime());
-                user.setBirthday(utilBirthday);
-
-                user.setRole(new Role(resultSet.getLong("role_id")));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return user;
+    if (email == null) {
+      throw new NullPointerException();
     }
 
-    @Override
-    public User findByEmail(String email) {
-        if (email == null) {
-            throw new NullPointerException();
+    User user = null;
+
+    return getUser(email, user, FIND_BY_EMAIL);
+  }
+
+  private User getUser(String value, User user, String sql) {
+    try (Connection connection = createConnection();
+        PreparedStatement statement = connection.prepareStatement(sql)) {
+      statement.setString(1, value);
+      try (ResultSet resultSet = statement.executeQuery()) {
+        if (resultSet.next()) {
+          RoleDao roleDao = new JdbcRoleDao();
+          Role role = roleDao.findByName(resultSet.getString("name"));
+          user = new User(
+              resultSet.getString("first_name"),
+              resultSet.getString("last_name"),
+              resultSet.getString("login"),
+              resultSet.getString("password"),
+              resultSet.getString("email"),
+              resultSet.getDate("birthday").toLocalDate(),
+              role);
         }
-
-        if (!existUserByEmail(email)) {
-            throw new IllegalArgumentException();
-        }
-
-        User user = new User();
-        String sql = "SELECT * FROM user WHERE email = ?";
-        try (Connection connection = createConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, email);
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                user.setId(resultSet.getLong("id"));
-                user.setFirstName(resultSet.getString("first_name"));
-                user.setLastName(resultSet.getString("last_name"));
-                user.setLastName(resultSet.getString("login"));
-                user.setPassword(resultSet.getString("password"));
-                user.setEmail(resultSet.getString("email"));
-
-                Date birthday = resultSet.getDate("birthday");
-                java.util.Date utilBirthday = new Date(birthday.getTime());
-                user.setBirthday(utilBirthday);
-
-                user.setRole(new Role(resultSet.getLong("role_id")));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return user;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
-
-    private boolean existUserById(Long id) {
-        String sql = "SELECT * FROM user WHERE id = ?";
-        try (Connection connection = createConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, id);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return true;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return false;
-    }
-
-    private boolean existUserByLogin(String login) {
-        String sql = "SELECT * FROM user WHERE login = ?";
-        try (Connection connection = createConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, login);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return true;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return false;
-    }
-
-    private boolean existUserByEmail(String email) {
-        String sql = "SELECT * FROM user WHERE email = ?";
-        try (Connection connection = createConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, email);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return true;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return false;
-    }
+    return user;
+  }
 }

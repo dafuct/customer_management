@@ -1,9 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <dataset>
-    <user ID="1" FIRST_NAME="first_name1" LAST_NAME="last_name1" LOGIN="login1"
+    <role ID="1" NAME="admin"/>
+    <role ID="2" NAME="user"/>
+
+    <client ID="1" FIRST_NAME="first_name1" LAST_NAME="last_name1" LOGIN="login1"
           PASSWORD="password1" EMAIL="da@gmail.com" BIRTHDAY="2000-01-01" ROLE_ID="1"/>
 
-    <user ID="2" FIRST_NAME="first_name2" LAST_NAME="last_name2" LOGIN="login2"
+    <client ID="2" FIRST_NAME="first_name2" LAST_NAME="last_name2" LOGIN="login2"
           PASSWORD="password2" EMAIL="not@gmail.com" BIRTHDAY="2020-01-01" ROLE_ID="2"/>
-
 </dataset>

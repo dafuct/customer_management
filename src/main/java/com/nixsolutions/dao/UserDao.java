@@ -4,15 +4,16 @@ import com.nixsolutions.entity.User;
 import java.util.List;
 
 public interface UserDao {
-    void create(User user);
 
-    void update(User user);
+  void create(User user);
 
-    void remove(User user);
+  void update(User user);
 
-    List<User> findAll();
+  void remove(User user);
 
-    User findByLogin(String login);
+  List<User> findAll();
 
-    User findByEmail(String email);
+  User findByLogin(String login);
+
+  User findByEmail(String email);
 }
