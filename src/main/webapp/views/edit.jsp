@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Add user</title>
+    <title>Add client</title>
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"
           id="bootstrap-css">
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
@@ -30,6 +30,7 @@
                 </div>
             </c:if>
 
+            <input type="hidden" name="id" value="${id}">
             <!-- Login -->
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
@@ -111,10 +112,10 @@
                         <c:choose>
                             <c:when test="${roleName eq 'admin'}">
                                 <option>admin</option>
-                                <option>user</option>
+                                <option>client</option>
                             </c:when>
                             <c:otherwise>
-                                <option>user</option>
+                                <option>client</option>
                                 <option>admin</option>
                             </c:otherwise>
                         </c:choose>

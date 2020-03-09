@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet("/user")
+@WebServlet("/client")
 public class UserHome extends HttpServlet {
 
   private static final long serialVersionUID = -8744122980293740501L;
@@ -15,6 +15,6 @@ public class UserHome extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
-    req.getRequestDispatcher("views/user.jsp").forward(req, resp);
+    req.getRequestDispatcher("views/client.jsp").forward(req, resp);
   }
 }

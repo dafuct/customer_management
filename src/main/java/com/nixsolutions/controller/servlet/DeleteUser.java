@@ -1,8 +1,8 @@
 package com.nixsolutions.controller.servlet;
 
-import com.nixsolutions.dao.JdbcUserDao;
 import com.nixsolutions.dao.UserDao;
-import com.nixsolutions.entity.User;
+import com.nixsolutions.dao.hibernate.HibernateUserDao;
+import com.nixsolutions.entity.Client;
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -17,20 +17,20 @@ public class DeleteUser extends HttpServlet {
 
   @Override
   public void init() {
-    userDao = new JdbcUserDao();
+    userDao = new HibernateUserDao();
   }
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws IOException {
-    User user = (User) req.getSession().getAttribute("admin");
-    String login = req.getParameter("user_login");
-    if (user.getLogin().equals(login)) {
+    Client client = (Client) req.getSession().getAttribute("admin");
+    Long id = Long.parseLong(req.getParameter("id"));
+    if (client.getId().equals(id)) {
       req.getSession().setAttribute("error", "You can't delete yourself!");
       resp.sendRedirect(req.getContextPath() + "/admin");
     } else {
-      User userToDelete = new User(login);
-      userDao.remove(userToDelete);
+      Client clientToDelete = new Client(id);
+      userDao.remove(clientToDelete);
       resp.sendRedirect(req.getContextPath() + "/admin");
     }
   }

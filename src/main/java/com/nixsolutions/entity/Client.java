@@ -1,22 +1,53 @@
 package com.nixsolutions.entity;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
-public class User {
+@Entity
+@Table(name = "client")
+public class Client implements Serializable {
 
+  private static final long serialVersionUID = 6585370168907351666L;
+
+  @Id
+  @Column(name = "id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @Column(name = "first_name")
   private String firstName;
+
+  @Column(name = "last_name")
   private String lastName;
+
+  @Column(name = "login")
   private String login;
+
+  @Column(name = "password")
   private String password;
+
+  @Column(name = "email")
   private String email;
+
+  @Column(name = "birthday")
   private LocalDate birthday;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "role_id")
   private Role role;
-  private int age;
 
-  public User(Long id, String firstName, String lastName, String login, String password,
+  public Client(Long id, String firstName, String lastName, String login, String password,
       String email, LocalDate birthday, Role role) {
     this.id = id;
     this.firstName = firstName;
@@ -28,7 +59,7 @@ public class User {
     this.role = role;
   }
 
-  public User(String firstName, String lastName, String login, String password,
+  public Client(String firstName, String lastName, String login, String password,
       String email, LocalDate birthday, Role role) {
     this.firstName = firstName;
     this.lastName = lastName;
@@ -39,15 +70,15 @@ public class User {
     this.role = role;
   }
 
-  public User(Long id) {
+  public Client(Long id) {
     this.id = id;
   }
 
-  public User(String login) {
+  public Client(String login) {
     this.login = login;
   }
 
-  public User() {
+  public Client() {
   }
 
   public Long getId() {
@@ -116,7 +147,7 @@ public class User {
 
   public int getAge() {
     LocalDate currentDate = LocalDate.now();
-    this.age = Period.between(this.birthday, currentDate).getYears();
+    int age = Period.between(this.birthday, currentDate).getYears();
     return age;
   }
 
@@ -125,17 +156,17 @@ public class User {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof User)) {
+    if (!(o instanceof Client)) {
       return false;
     }
-    User user = (User) o;
-    return getFirstName().equals(user.getFirstName()) &&
-            getLastName().equals(user.getLastName()) &&
-            getLogin().equals(user.getLogin()) &&
-            getPassword().equals(user.getPassword()) &&
-            getEmail().equals(user.getEmail()) &&
-            getBirthday().equals(user.getBirthday()) &&
-            getRole().equals(user.getRole());
+    Client client = (Client) o;
+    return getFirstName().equals(client.getFirstName()) &&
+        getLastName().equals(client.getLastName()) &&
+        getLogin().equals(client.getLogin()) &&
+        getPassword().equals(client.getPassword()) &&
+        getEmail().equals(client.getEmail()) &&
+        getBirthday().equals(client.getBirthday()) &&
+        getRole().equals(client.getRole());
   }
 
   @Override

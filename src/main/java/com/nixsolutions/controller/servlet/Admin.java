@@ -1,8 +1,8 @@
 package com.nixsolutions.controller.servlet;
 
-import com.nixsolutions.dao.JdbcUserDao;
 import com.nixsolutions.dao.UserDao;
-import com.nixsolutions.entity.User;
+import com.nixsolutions.dao.hibernate.HibernateUserDao;
+import com.nixsolutions.entity.Client;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -19,13 +19,13 @@ public class Admin extends HttpServlet {
 
   @Override
   public void init() {
-    userDao = new JdbcUserDao();
+    userDao = new HibernateUserDao();
   }
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
-    List<User> list = userDao.findAll();
+    List<Client> list = userDao.findAll();
     req.setAttribute("list", list);
     req.getRequestDispatcher("views/admin.jsp").forward(req, resp);
   }

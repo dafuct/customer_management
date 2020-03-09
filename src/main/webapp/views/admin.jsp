@@ -20,7 +20,7 @@
     <div class="w-75 p-3">
         <div class="d-flex justify-content-between">
             <div>
-                <p><a href="add">Add new user</a></p>
+                <p><a href="add">Add new client</a></p>
             </div>
             <div>
                 <p>Admin: ${admin.lastName} (<a href="logout">exit</a>)</p>
@@ -38,22 +38,22 @@
             </tr>
             </thead>
             <tbody>
-            <c:forEach var="user" items="${list}">
+            <c:forEach var="client" items="${list}">
                 <tr>
-                    <td><c:out value="${user.login}"/></td>
-                    <td><c:out value="${user.firstName}"/></td>
-                    <td><c:out value="${user.lastName}"/></td>
-                    <td><c:out value="${user.age}"/></td>
-                    <td><c:out value="${user.role.name}"/></td>
+                    <td><c:out value="${client.login}"/></td>
+                    <td><c:out value="${client.firstName}"/></td>
+                    <td><c:out value="${client.lastName}"/></td>
+                    <td><c:out value="${client.age}"/></td>
+                    <td><c:out value="${client.role.name}"/></td>
                     <td>
                         <div class="d-flex justify-content-between">
                             <form action="edit" method="get">
-                                <input type="hidden" name="user_login" value="${user.login}">
+                                <input type="hidden" name="login" value="${client.login}">
                                 <button type="submit">Edit</button>
                             </form>
                             <form onsubmit="return confirm('Are you sure?')" action="delete"
                                   method="post">
-                                <input type="hidden" name="user_login" value="${user.login}">
+                                <input type="hidden" name="id" value="${client.id}">
                                 <button type="submit">Delete</button>
                             </form>
                         </div>

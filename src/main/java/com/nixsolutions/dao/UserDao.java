@@ -1,19 +1,19 @@
 package com.nixsolutions.dao;
 
-import com.nixsolutions.entity.User;
+import com.nixsolutions.entity.Client;
 import java.util.List;
 
 public interface UserDao {
 
-  void create(User user);
+  void create(Client client);
 
-  void update(User user);
+  void update(Client client);
 
-  void remove(User user);
+  void remove(Client client);
 
-  List<User> findAll();
+  List<Client> findAll();
 
-  User findByLogin(String login);
+  Client findByLogin(String login);
 
-  User findByEmail(String email);
+  Client findByEmail(String email);
 }

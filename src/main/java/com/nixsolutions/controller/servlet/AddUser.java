@@ -1,11 +1,11 @@
 package com.nixsolutions.controller.servlet;
 
-import com.nixsolutions.dao.JdbcRoleDao;
-import com.nixsolutions.dao.JdbcUserDao;
 import com.nixsolutions.dao.RoleDao;
 import com.nixsolutions.dao.UserDao;
+import com.nixsolutions.dao.hibernate.HibernateRoleDao;
+import com.nixsolutions.dao.hibernate.HibernateUserDao;
+import com.nixsolutions.entity.Client;
 import com.nixsolutions.entity.Role;
-import com.nixsolutions.entity.User;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -25,8 +25,8 @@ public class AddUser extends HttpServlet {
 
   @Override
   public void init() {
-    userDao = new JdbcUserDao();
-    roleDao = new JdbcRoleDao();
+    userDao = new HibernateUserDao();
+    roleDao = new HibernateRoleDao();
   }
 
   @Override
@@ -84,22 +84,22 @@ public class AddUser extends HttpServlet {
       return;
     }
 
-    User existingUser = userDao.findByLogin(login);
-    if (existingUser != null) {
-      req.setAttribute("error", "User with this login already exists");
+    Client existingClient = userDao.findByLogin(login);
+    if (existingClient != null) {
+      req.setAttribute("error", "Client with this login already exists");
       req.getRequestDispatcher("views/add.jsp").forward(req, resp);
       return;
     }
-    existingUser = userDao.findByEmail(email);
-    if (existingUser != null) {
-      req.setAttribute("error", "User with this email already exists");
+    existingClient = userDao.findByEmail(email);
+    if (existingClient != null) {
+      req.setAttribute("error", "Client with this email already exists");
       req.getRequestDispatcher("views/add.jsp").forward(req, resp);
       return;
     }
 
     Role roleUser = roleDao.findByName(role);
-    User user = new User(firstName, lastName, login, password, email, birthDate, roleUser);
-    userDao.create(user);
+    Client client = new Client(firstName, lastName, login, password, email, birthDate, roleUser);
+    userDao.create(client);
 
     resp.sendRedirect(req.getContextPath() + "/admin");
   }

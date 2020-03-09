@@ -14,7 +14,7 @@
 <body>
 <div class="container mt-5">
     <div class="row h-100 justify-content-center align-items-center">
-        <h1>Hello, ${user.firstName}!</h1>
+        <h1>Hello, ${client.firstName}!</h1>
     </div>
 </div>
 

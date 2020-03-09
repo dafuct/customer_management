@@ -1,11 +1,11 @@
 package com.nixsolutions.controller.servlet;
 
-import com.nixsolutions.dao.JdbcRoleDao;
-import com.nixsolutions.dao.JdbcUserDao;
 import com.nixsolutions.dao.RoleDao;
 import com.nixsolutions.dao.UserDao;
+import com.nixsolutions.dao.hibernate.HibernateRoleDao;
+import com.nixsolutions.dao.hibernate.HibernateUserDao;
+import com.nixsolutions.entity.Client;
 import com.nixsolutions.entity.Role;
-import com.nixsolutions.entity.User;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -25,15 +25,15 @@ public class EditUser extends HttpServlet {
 
   @Override
   public void init() {
-    userDao = new JdbcUserDao();
-    roleDao = new JdbcRoleDao();
+    userDao = new HibernateUserDao();
+    roleDao = new HibernateRoleDao();
   }
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
-    String login = req.getParameter("user_login");
-    User byLogin = userDao.findByLogin(login);
+    String login = req.getParameter("login");
+    Client byLogin = userDao.findByLogin(login);
 
     if (byLogin == null) {
       req.setAttribute("error", "There is no such user");
@@ -41,7 +41,8 @@ public class EditUser extends HttpServlet {
       return;
     }
 
-    req.setAttribute("login", login);
+    req.setAttribute("id", byLogin.getId());
+    req.setAttribute("login", byLogin.getLogin());
     req.setAttribute("password", byLogin.getPassword());
     req.setAttribute("passwordAgain", byLogin.getPassword());
     req.setAttribute("email", byLogin.getEmail());
@@ -56,6 +57,7 @@ public class EditUser extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws IOException, ServletException {
+    Long id = Long.parseLong(req.getParameter("id"));
     String login = req.getParameter("login");
     String password = req.getParameter("password");
     String passwordAgain = req.getParameter("passwordAgain");
@@ -65,6 +67,7 @@ public class EditUser extends HttpServlet {
     String birthday = req.getParameter("birthday");
     String roleName = req.getParameter("role");
 
+    req.setAttribute("id", id);
     req.setAttribute("login", login);
     req.setAttribute("password", password);
     req.setAttribute("passwordAgain", passwordAgain);
@@ -76,7 +79,7 @@ public class EditUser extends HttpServlet {
 
     if (password.isEmpty() || passwordAgain.isEmpty() || email.isEmpty() || firstName.isEmpty()
         || lastName.isEmpty() || birthday.isEmpty()) {
-      req.setAttribute("error", "All fields must be inputed");
+      req.setAttribute("error", "All fields must be inputted");
       req.getRequestDispatcher("views/edit.jsp").forward(req, resp);
       return;
     }
@@ -110,17 +113,17 @@ public class EditUser extends HttpServlet {
       return;
     }
 
-    User byLogin = userDao.findByLogin(login);
-    User byEmail = userDao.findByEmail(email);
+    Client byLogin = userDao.findByLogin(login);
+    Client byEmail = userDao.findByEmail(email);
     if (byEmail != null && !byLogin.equals(byEmail)) {
-      req.setAttribute("error", "User with this email already exists");
+      req.setAttribute("error", "Client with this email already exists");
       req.getRequestDispatcher("views/edit.jsp").forward(req, resp);
       return;
     }
 
     Role roleUser = roleDao.findByName(roleName);
-    User user = new User(firstName, lastName, login, password, email, birthDate, roleUser);
-    userDao.update(user);
+    Client client = new Client(id, firstName, lastName, login, password, email, birthDate, roleUser);
+    userDao.update(client);
 
     resp.sendRedirect(req.getContextPath() + "/admin");
   }

@@ -1,9 +1,9 @@
 package com.nixsolutions.controller.servlet;
 
-import com.nixsolutions.dao.JdbcUserDao;
 import com.nixsolutions.dao.UserDao;
+import com.nixsolutions.dao.hibernate.HibernateUserDao;
 import com.nixsolutions.entity.Role;
-import com.nixsolutions.entity.User;
+import com.nixsolutions.entity.Client;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -20,7 +20,7 @@ public class Login extends HttpServlet {
 
   @Override
   public void init() {
-    userDao = new JdbcUserDao();
+    userDao = new HibernateUserDao();
   }
 
   @Override
@@ -36,31 +36,31 @@ public class Login extends HttpServlet {
     String password = req.getParameter("password");
     HttpSession session = req.getSession(true);
 
-    User user = userDao.findByLogin(login);
+    Client client = userDao.findByLogin(login);
 
-    if (user == null) {
+    if (client == null) {
       req.setAttribute("error", "Login or Password wrong");
       req.getRequestDispatcher("views/login.jsp").forward(req, resp);
       return;
     }
 
-    if (!user.getLogin().equals(login) || !user.getPassword().equals(password)) {
+    if (!client.getLogin().equals(login) || !client.getPassword().equals(password)) {
       req.setAttribute("error", "Login or Password wrong");
       req.getRequestDispatcher("views/login.jsp").forward(req, resp);
       return;
     }
 
-    if (user.getLogin().equals(login) && user.getPassword().equals(password)) {
-      Role role = user.getRole();
+    if (client.getLogin().equals(login) && client.getPassword().equals(password)) {
+      Role role = client.getRole();
       if (role.getName().equals("admin")) {
-        session.setAttribute("admin", user);
+        session.setAttribute("admin", client);
         resp.sendRedirect(req.getContextPath() + "/admin");
         return;
       }
 
-      if (role.getName().equals("user")) {
-        session.setAttribute("user", user);
-        resp.sendRedirect(req.getContextPath() + "/user");
+      if (role.getName().equals("client")) {
+        session.setAttribute("client", client);
+        resp.sendRedirect(req.getContextPath() + "/client");
       }
     }
   }
