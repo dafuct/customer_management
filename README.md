@@ -1,17 +1,17 @@
 # customer_management
-Website for managing clients from the database 
+`Website for managing clients from the database `
 
-To get started you need:
-1. clone project from github
-2. run script resources/query.sql in postgresql (this will create two tables with one admin and one client)
-3. run tomcat 
-4. open browser: localhost:8080/management
-5. Login: admin, password admin (then you can change)
-6. Managemet clients :)
+**GET STARTED**
+1. _clone project from github_
+2. _run script resources/query.sql in postgresql (this will create two tables with one admin and one client)_
+3. _run tomcat_ 
+4. _open browser: localhost:8080/management_
+5. _Login: admin, password admin (then you can change)_
+6. _Management clients :)_
 
-Technologies used: 
-- Postgresql
-- H2 database (for test)
-- Servlet API
-- Hibernate
-- views pages JSP
+_Technologies used:_ 
+**- Postgresql**
+**- H2 database (for test)**
+**- Servlet API**
+**- Hibernate**
+**- views pages JSP**
