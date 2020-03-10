@@ -1,4 +1,4 @@
-# customer_management
+# CLIENT MANAGEMENT
 `Website for managing clients from the database `
 
 **GET STARTED**
@@ -10,8 +10,8 @@
 6. _Management clients :)_
 
 _Technologies used:_ 
-**- Postgresql**
-**- H2 database (for test)**
-**- Servlet API**
-**- Hibernate**
-**- views pages JSP**
+- **Postgresql**
+- **H2 database (for test)**
+- **Servlet API**
+- **Hibernate**
+- **views pages JSP**
