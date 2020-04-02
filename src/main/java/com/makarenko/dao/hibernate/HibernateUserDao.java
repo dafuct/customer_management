@@ -91,7 +91,7 @@ public class HibernateUserDao implements UserDao {
       Session session = HibernateUtils.getSessionFactory().getCurrentSession();
       transaction = session.beginTransaction();
 
-      list = session.createQuery("from Client", Client.class).list();
+      list = session.createQuery("FROM Client", Client.class).list();
 
       transaction.commit();
     } catch (Exception e) {
