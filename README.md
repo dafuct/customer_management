@@ -3,7 +3,8 @@
 
 **GET STARTED**
 1. _clone project from github_
-2. _run script resources/query.sql in postgresql (this will create two tables with one admin and one client)_
+2. _create database in mysql 'manager' 
+--- run script resources/query.sql in mysql (this will create two tables with one admin and one client)_
 3. terminal: mvn jetty:run
 4. _open browser: localhost:8080/management_
 5. _Login: admin, password admin (then you can change)_
